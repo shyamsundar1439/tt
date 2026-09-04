@@ -1,0 +1,16 @@
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.git
+.gitignore
+.env
+venv
+.venv
+cert.pem
+key.pem
+vapid_private.pem
+vapid_meta.json
+study.db
+*.db-wal
+*.db-shm

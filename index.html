@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0c0e12">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Study CGL">
+  <title>Study Companion • SSC CGL</title>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/icon-192.png">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Main App Layout -->
+  <div class="app-layout">
+
+    <!-- Top Quiet Header -->
+    <header class="app-header">
+      <div class="header-brand-wrap">
+        <div class="header-brand">
+          <h1 class="brand-title">Study Companion</h1>
+          <span class="brand-tag">SSC CGL</span>
+        </div>
+        <div class="header-date" id="live-date-header">Loading schedule...</div>
+      </div>
+
+      <div class="header-actions">
+        <!-- Notification Settings Button -->
+        <button class="icon-toggle-btn" onclick="openNotificationModal()" id="btn-notification-bell" aria-label="Notification settings" title="Notification settings">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+          </svg>
+          <span class="notification-indicator" id="notif-indicator"></span>
+        </button>
+
+        <!-- Energy Checkin Quick Link -->
+        <button class="header-link-btn" onclick="openCheckInModal()" title="Daily energy check-in">Check-in</button>
+
+        <!-- Theme Toggle -->
+        <button class="icon-toggle-btn" onclick="toggleTheme()" id="btn-theme-toggle" aria-label="Toggle theme" title="Toggle dark/light mode">
+          <svg class="icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+          <svg class="icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Top Navigation Tabs (Today, Syllabus, Progress, Review) -->
+    <nav class="view-selector-tabs" aria-label="Primary Navigation">
+      <button class="view-tab active" data-view="today" onclick="switchView('today')">
+        <span>Today</span>
+        <span class="tab-count-badge" id="tab-badge-today">0/0</span>
+      </button>
+      <button class="view-tab" data-view="syllabus" onclick="switchView('syllabus')">
+        <span>Syllabus</span>
+        <span class="tab-count-badge" id="tab-badge-syllabus">0/21</span>
+      </button>
+      <button class="view-tab" data-view="progress" onclick="switchView('progress')">
+        <span>Progress</span>
+      </button>
+      <button class="view-tab" data-view="review" onclick="switchView('review')">
+        <span>Review</span>
+      </button>
+    </nav>
+
+    <!-- Main Workspace -->
+    <main class="main-content-area">
+
+      <!-- ==================== VIEW 1: TODAY ==================== -->
+      <section class="view-panel" id="view-today" aria-label="Today's Study Focus">
+        
+        <!-- Today's Core Topic Focus & Timer Banner -->
+        <div class="study-pulse-strip">
+          <div class="pulse-content-grid">
+            
+            <div class="pulse-block now-block">
+              <span class="pulse-overline">Today's Priority Focus</span>
+              <div class="pulse-title" id="pulse-now-title">Loading study plan...</div>
+              <div class="pulse-caption" id="pulse-now-meta">Morning Focus Sprint • 35m planned</div>
+            </div>
+
+            <div class="pulse-block next-block">
+              <span class="pulse-overline">Next Syllabus Target</span>
+              <div class="pulse-title" id="pulse-next-title">Loading upcoming chapter...</div>
+              <div class="pulse-caption" id="pulse-next-meta">Next chapter in foundation syllabus</div>
+            </div>
+
+            <div class="pulse-block progress-block">
+              <span class="pulse-overline">Progress Made Today</span>
+              <div class="pulse-title" id="pulse-today-hours">0.0 / 4.5 hrs <span class="pulse-percent" id="pulse-today-pct">(0%)</span></div>
+              <div class="pulse-caption" id="pulse-today-meta">0 tasks completed today</div>
+            </div>
+
+          </div>
+
+          <!-- Timer & Focus Controls Embedded Inline -->
+          <div class="today-focus-controller">
+            <div class="focus-timer-inline">
+              <div class="timer-display-wrap">
+                <div class="timer-digits-clean" id="timer-digits">25:00</div>
+                <div class="timer-badge-indicator" id="timer-wake-badge" style="display: none;">⚡ Screen Awake</div>
+              </div>
+              <div class="timer-actions-row">
+                <button class="btn-focus-primary" id="btn-timer-toggle" onclick="toggleTimer()">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+                    <polygon points="5 3 19 12 5 21 5 3"/>
+                  </svg>
+                  <span id="btn-timer-toggle-text">Start Focus</span>
+                </button>
+                <button class="btn-timer-subtle" id="btn-timer-reset" onclick="resetTimer()" title="Reset Timer">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="1 4 1 10 7 10"></polyline>
+                    <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Timer Presets -->
+            <div class="timer-preset-row">
+              <button class="preset-chip" data-mins="15" onclick="setTimerPreset(15)">15m Recall</button>
+              <button class="preset-chip active" data-mins="25" onclick="setTimerPreset(25)">25m Focus</button>
+              <button class="preset-chip" data-mins="35" onclick="setTimerPreset(35)">35m Quant</button>
+              <button class="preset-chip" data-mins="50" onclick="setTimerPreset(50)">50m Deep</button>
+            </div>
+          </div>
+
+          <!-- Daily Energy status -->
+          <div class="pulse-footer-row">
+            <div class="pulse-energy-status" id="energy-badge-text" onclick="openCheckInModal()" title="Click to update daily energy check-in">
+              Energy: Tap to complete morning check-in
+            </div>
+          </div>
+        </div>
+
+        <!-- Rollover Banner for Prior Uncompleted Tasks -->
+        <div class="prior-rollover-banner" id="prior-rollover-banner" style="display: none;">
+          <div class="banner-info">
+            <span class="banner-icon">🔄</span>
+            <div>
+              <strong id="prior-banner-title">Prior Tasks Available</strong>
+              <div class="banner-sub" id="prior-banner-sub">Bring forward uncompleted tasks into today's priority buffer with 0 guilt.</div>
+            </div>
+          </div>
+          <button class="btn-banner-rollover" onclick="rolloverAllPriorTasks()">Rollover to Today</button>
+        </div>
+
+        <!-- Actionable Tasks for Today (ONLY current syllabus topics, NO mock tests) -->
+        <div class="section-heading-row">
+          <div>
+            <h2 class="section-title">Today's Syllabus Tasks</h2>
+            <p class="section-subtitle">Syllabus topics and revision activities with zero-guilt rollover</p>
+          </div>
+          <button class="btn-action-primary" onclick="openAddTaskModal()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            <span>Add Study Task</span>
+          </button>
+        </div>
+
+        <!-- Priority Filter Buttons -->
+        <div class="filter-strip">
+          <div class="filter-buttons">
+            <button class="filter-btn active" data-priority="all" onclick="setTaskPriorityFilter('all')">All Priorities</button>
+            <button class="filter-btn" data-priority="must" onclick="setTaskPriorityFilter('must')">Must Do</button>
+            <button class="filter-btn" data-priority="should" onclick="setTaskPriorityFilter('should')">Should Do</button>
+            <button class="filter-btn" data-priority="bonus" onclick="setTaskPriorityFilter('bonus')">Bonus</button>
+          </div>
+        </div>
+
+        <!-- Task List Container -->
+        <div class="task-list-wrap" id="tasks-container">
+          <!-- Populated from SQLite Database via API -->
+        </div>
+
+        <!-- College Gap Micro-Sprint Engine (Free period recommendations) -->
+        <div class="micro-sprint-section">
+          <div class="section-heading-row">
+            <div>
+              <h3 class="subsection-title">College Free-Period Recommendation</h3>
+              <p class="section-subtitle">Bite-sized active recall between classes</p>
+            </div>
+          </div>
+
+          <div class="sprint-controls-grid">
+            <div class="segmented-control" role="group" aria-label="Available time">
+              <button class="seg-btn gap-time-btn active" data-time="15">15m Recall</button>
+              <button class="seg-btn gap-time-btn" data-time="30">30m Practice</button>
+              <button class="seg-btn gap-time-btn" data-time="45">45m Deep</button>
+            </div>
+
+            <div class="segmented-control" role="group" aria-label="Subject focus">
+              <button class="seg-btn gap-sub-btn active" data-sub="english">English Focus</button>
+              <button class="seg-btn gap-sub-btn" data-sub="history">History & GK</button>
+            </div>
+          </div>
+
+          <div class="sprint-rec-box">
+            <span class="sprint-rec-badge" id="gap-rec-badge">Fast Active Recall</span>
+            <div class="sprint-rec-title" id="gap-rec-title">15-Min Rapid Vocab & Idioms Sprint</div>
+            <div class="sprint-rec-desc" id="gap-rec-desc">Review 20 high-frequency CGL words + 5 idioms using active recall.</div>
+            <button class="btn-start-sprint" id="btn-start-gap-sprint">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+                <polygon points="5 3 19 12 5 21 5 3"/>
+              </svg>
+              <span>Start Micro-Sprint (15m)</span>
+            </button>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ==================== VIEW 2: SYLLABUS ==================== -->
+      <section class="view-panel hidden" id="view-syllabus" aria-label="Syllabus Progression">
+        
+        <!-- Month Selector -->
+        <div class="month-navigation">
+          <div class="month-buttons" role="tablist">
+            <button class="month-btn active" data-month="month1" role="tab" aria-selected="true" onclick="setPhaseMonth('month1')">
+              <span class="m-name">Month 1 (Sep)</span>
+              <span class="m-focus">Foundation</span>
+            </button>
+            <button class="month-btn" data-month="month2" role="tab" aria-selected="false" onclick="setPhaseMonth('month2')">
+              <span class="m-name">Month 2 (Oct)</span>
+              <span class="m-focus">Arithmetic + Adv</span>
+            </button>
+            <button class="month-btn" data-month="month3" role="tab" aria-selected="false" onclick="setPhaseMonth('month3')">
+              <span class="m-name">Month 3 (Nov)</span>
+              <span class="m-focus">Advanced + Tier 2</span>
+            </button>
+            <button class="month-btn" data-month="month4" role="tab" aria-selected="false" onclick="setPhaseMonth('month4')">
+              <span class="m-name">Month 4 (Dec)</span>
+              <span class="m-focus">Revision & Speed</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Month Summary Card -->
+        <div class="syllabus-status-card">
+          <div class="status-header-line">
+            <div class="phase-goal-text" id="phase-target-description">
+              <strong>Month 1 Target:</strong> Build basics, calculation speed, core grammar & daily vocab.
+            </div>
+            <div class="syllabus-percent-badge" id="syllabus-progress-text">
+              0 of 21 topics completed (0%)
+            </div>
+          </div>
+
+          <div class="hairline-bar-wrap">
+            <div class="hairline-bar-fill" id="syllabus-main-progress" style="width: 0%;"></div>
+          </div>
+
+          <!-- Subject Overview Pills -->
+          <div class="subject-summary-pills" id="subject-stat-pills">
+            <!-- Rendered dynamically by app.js: Maths, Reasoning, English, GK -->
+          </div>
+        </div>
+
+        <!-- Filter Controls -->
+        <div class="syllabus-filter-bar">
+          <div class="filter-instruction">Filter Topics:</div>
+          <div class="filter-button-group">
+            <button class="status-filter-btn active" data-status="all" onclick="filterSyllabus('all')">All Topics</button>
+            <button class="status-filter-btn" data-status="in_progress" onclick="filterSyllabus('in_progress')">Studying Now</button>
+            <button class="status-filter-btn" data-status="pending" onclick="filterSyllabus('pending')">Remaining</button>
+            <button class="status-filter-btn" data-status="completed" onclick="filterSyllabus('completed')">Completed</button>
+          </div>
+        </div>
+
+        <!-- Subject Topics Tree -->
+        <div class="syllabus-subjects-tree" id="syllabus-subjects-container">
+          <!-- Rendered dynamically from backend database -->
+        </div>
+
+      </section>
+
+      <!-- ==================== VIEW 3: PROGRESS ==================== -->
+      <section class="view-panel hidden" id="view-progress" aria-label="Progress & Weak Topic Analysis">
+        
+        <div class="section-heading-row">
+          <div>
+            <h2 class="section-title">Weekly Progress & Analysis</h2>
+            <p class="section-subtitle">Calculated automatically from your recorded study sessions</p>
+          </div>
+        </div>
+
+        <!-- Metric Cards Grid -->
+        <div class="analytics-stats-grid">
+          <div class="analytic-box">
+            <div class="analytic-num" id="progress-hours-today">0.0h</div>
+            <div class="analytic-lbl">Logged Today</div>
+          </div>
+          <div class="analytic-box">
+            <div class="analytic-num" id="progress-completion-rate">0%</div>
+            <div class="analytic-lbl">Task Completion</div>
+          </div>
+          <div class="analytic-box">
+            <div class="analytic-num" id="progress-streak-num">0 Days</div>
+            <div class="analytic-lbl">Consistency Streak</div>
+          </div>
+          <div class="analytic-box">
+            <div class="analytic-num" id="progress-xp-num">0</div>
+            <div class="analytic-lbl">Total Mastery XP</div>
+          </div>
+        </div>
+
+        <!-- Planned vs Actual Study Time -->
+        <div class="progress-card">
+          <div class="card-title-row">
+            <span class="card-title">Today's Subject Breakdown</span>
+            <span class="card-highlight" id="progress-time-pct">0% of planned time</span>
+          </div>
+
+          <div class="hairline-bar-wrap">
+            <div class="hairline-bar-fill" id="progress-time-bar" style="width: 0%;"></div>
+          </div>
+
+          <div class="subject-breakdown-list" id="progress-subject-list">
+            <!-- Rendered by app.js -->
+          </div>
+        </div>
+
+        <!-- 7-Day Consistency Curve -->
+        <div class="progress-card">
+          <div class="card-title-row">
+            <span class="card-title">7-Day Study Consistency</span>
+            <span class="card-sub-tag">Daily focus hours</span>
+          </div>
+          <div class="chart-bars" id="progress-chart-bars">
+            <!-- Rendered from backend API -->
+          </div>
+        </div>
+
+        <!-- Weak Topic Analysis -->
+        <div class="weak-topics-card">
+          <div class="card-title-row">
+            <span class="card-title">Weak-Topic & Retention Analysis</span>
+            <span class="badge-subtle">Algorithmic Diagnostic</span>
+          </div>
+          <div class="weak-topics-list" id="progress-weak-topics">
+            <!-- Rendered from backend -->
+          </div>
+          <div class="weak-rec-box" id="progress-weak-recommendation">
+            <!-- Recommendation text -->
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ==================== VIEW 4: REVIEW & SETTINGS ==================== -->
+      <section class="view-panel hidden" id="view-review" aria-label="Review & Active Recall">
+        
+        <div class="section-heading-row">
+          <div>
+            <h2 class="section-title">Evening Review & Retention</h2>
+            <p class="section-subtitle">Consolidate daily learning and prime tomorrow</p>
+          </div>
+        </div>
+
+        <!-- 60-Second Evening Wind-Down Card -->
+        <div class="review-card">
+          <div class="card-title-row">
+            <span class="card-title">60-Second Evening Wind-Down</span>
+            <span class="card-sub-tag">Intelligent rollover</span>
+          </div>
+          <p class="card-desc">Log your wins, roll forward missed items with zero guilt, and clear your working memory before sleep.</p>
+          <button class="btn-action-primary" onclick="openReviewModal()">
+            <span>Start Evening Review</span>
+          </button>
+        </div>
+
+        <!-- Spaced Repetition Active Recall Deck -->
+        <div class="review-card">
+          <div class="card-title-row">
+            <span class="card-title">Active Recall Flashcards</span>
+            <button class="text-action-link" onclick="openFlashcardModal()">Practice All Decks</button>
+          </div>
+          <div class="flashcard-quick-box" onclick="openFlashcardModal()">
+            <span class="fc-quick-cat" id="review-fc-category">Maths - Shortcuts</span>
+            <div class="fc-quick-question" id="review-fc-question">What are the common Pythagorean Triplets you must memorize instantly?</div>
+            <span class="fc-quick-cta">Tap to reveal answer & test recall →</span>
+          </div>
+        </div>
+
+        <!-- Mobile Push Notifications Preferences Card -->
+        <div class="review-card notif-hub-card">
+          <div class="card-title-row">
+            <span class="card-title">Mobile Push & Local Notifications</span>
+            <span class="notif-pill" id="notif-badge-pill">Checking...</span>
+          </div>
+          <p class="card-desc">Receive study block alerts (Morning 5:15 AM, Evening 6:30 PM, etc.) and timer alarms on your mobile device or browser.</p>
+          
+          <div class="notif-action-cluster">
+            <button class="btn-enable-notif" id="btn-request-perm" onclick="requestNotificationPermission()">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+              </svg>
+              <span>Enable Mobile Notifications</span>
+            </button>
+            <button class="btn-subtle" onclick="testNotification()">
+              <span>🔔 Test Buzz & Sound</span>
+            </button>
+            <button class="btn-subtle" onclick="sendServerPushTest()" title="Dispatches real Web Push from server to phone lockscreen">
+              <span>🚀 Test Cloud Web Push</span>
+            </button>
+            <button class="btn-subtle" onclick="openNotificationModal()">
+              <span>Configure Times</span>
+            </button>
+          </div>
+
+          <div class="notif-mobile-guide">
+            <div class="guide-title">📱 Mobile Instructions:</div>
+            <ul class="guide-list">
+              <li><strong>Android Chrome:</strong> Tap <em>Enable Mobile Notifications</em> above. Tap <em>Add to Home screen</em> in the browser menu for a full standalone PWA app.</li>
+              <li><strong>iPhone / iPad Safari:</strong> Tap Share button → <em>Add to Home Screen</em>. Open from your home screen and tap <em>Enable Mobile Notifications</em>.</li>
+            </ul>
+          </div>
+        </div>
+
+      </section>
+
+    </main>
+
+    <!-- Mobile Bottom Navigation Bar (4 clean views) -->
+    <nav class="mobile-bottom-bar" aria-label="Mobile Navigation">
+      <button class="bottom-nav-item active" data-tab="today" onclick="switchView('today')">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+        <span>Today</span>
+      </button>
+
+      <button class="bottom-nav-item" data-tab="syllabus" onclick="switchView('syllabus')">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+        </svg>
+        <span>Syllabus</span>
+      </button>
+
+      <button class="bottom-nav-item" data-tab="progress" onclick="switchView('progress')">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="20" x2="18" y2="10"></line>
+          <line x1="12" y1="20" x2="12" y2="4"></line>
+          <line x1="6" y1="20" x2="6" y2="14"></line>
+        </svg>
+        <span>Progress</span>
+      </button>
+
+      <button class="bottom-nav-item" data-tab="review" onclick="switchView('review')">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+        <span>Review</span>
+      </button>
+    </nav>
+
+  </div>
+
+  <!-- ==================== MODALS ==================== -->
+
+  <!-- 1. Notification Settings Modal -->
+  <div class="modal-backdrop" id="notification-modal" role="dialog" aria-modal="true">
+    <div class="modal-dialog">
+      <div class="modal-head">
+        <h3 class="modal-heading">Notification & Alert Settings</h3>
+        <button class="btn-modal-close" onclick="closeNotificationModal()" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-body">
+        
+        <!-- Browser Permission Status Bar -->
+        <div class="form-group" style="margin-bottom: 14px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: var(--bg-surface-subtle); border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
+            <div>
+              <div style="font-size: 0.8rem; font-weight: 600; color: var(--text-main);">Mobile / Browser Permission</div>
+              <div id="modal-notif-perm-status" style="font-size: 0.72rem; color: var(--text-secondary);">Checking permission status...</div>
+            </div>
+            <button type="button" class="btn-action-primary" id="modal-btn-grant-perm" onclick="requestNotificationPermission()" style="padding: 5px 12px; font-size: 0.75rem;">
+              Allow
+            </button>
+          </div>
+        </div>
+
+        <div class="toggle-setting-row">
+          <div>
+            <div class="setting-title">Enable Study Notifications</div>
+            <div class="setting-desc">Allow notifications and timer alerts on your phone or browser</div>
+          </div>
+          <input type="checkbox" id="notif-master-enable" class="custom-toggle" checked onchange="handleMasterNotifToggle()">
+        </div>
+
+        <div class="setting-subgroup" id="notif-subgroup">
+          <div class="setting-checkbox-row">
+            <input type="checkbox" id="notif-opt-daily" checked>
+            <label for="notif-opt-daily">
+              <strong>Daily task reminder</strong>
+              <span>Remind about specific topic scheduled for today (e.g. <em>“Maths — Percentage”</em>)</span>
+            </label>
+          </div>
+
+          <div class="setting-checkbox-row">
+            <input type="checkbox" id="notif-opt-upcoming" checked>
+            <label for="notif-opt-upcoming">
+              <strong>Study block start alerts</strong>
+              <span>Alerts for Morning Prime (5:15 AM), Evening Logic (6:30 PM), GK (7:45 PM) & Wind-Down (8:45 PM)</span>
+            </label>
+          </div>
+
+          <div class="setting-checkbox-row">
+            <input type="checkbox" id="notif-opt-timer" checked>
+            <label for="notif-opt-timer">
+              <strong>Focus timer completion alarms</strong>
+              <span>Sound chime and phone vibration when a 15m/25m/35m/50m study sprint finishes</span>
+            </label>
+          </div>
+
+          <div class="setting-checkbox-row">
+            <input type="checkbox" id="notif-opt-missed" checked>
+            <label for="notif-opt-missed">
+              <strong>Missed-task evening check-in</strong>
+              <span>Gentle 8:45 PM check-in to rollover pending items guilt-free</span>
+            </label>
+          </div>
+
+          <div class="setting-checkbox-row">
+            <input type="checkbox" id="notif-opt-revision" checked>
+            <label for="notif-opt-revision">
+              <strong>Revision due reminder</strong>
+              <span>Spaced repetition alerts for formula retrieval and vocabulary</span>
+            </label>
+          </div>
+
+          <div class="form-group" style="margin-top: 10px;">
+            <label class="form-label" for="notif-time-input">Daily Morning Reminder Time</label>
+            <input type="time" class="form-input" id="notif-time-input" value="07:00">
+          </div>
+        </div>
+
+        <!-- Clean Data Reset Option -->
+        <div style="margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border-subtle); display: flex; align-items: center; justify-content: space-between;">
+          <div>
+            <div style="font-size: 0.78rem; font-weight: 600; color: var(--text-secondary);">Start Clean / Reset All Data</div>
+            <div style="font-size: 0.7rem; color: var(--text-muted);">Reset streak, tasks, and sessions to Day 1 fresh state</div>
+          </div>
+          <button type="button" class="btn-modal-danger" onclick="confirmResetAllData()">Reset to Day 1</button>
+        </div>
+
+      </div>
+      <div class="modal-foot">
+        <button class="btn-modal-cancel" onclick="testNotification()">Test Buzz & Sound</button>
+        <button class="btn-modal-save" onclick="saveNotificationSettings()">Save Preferences</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Morning Check-in Modal -->
+  <div class="modal-backdrop" id="checkin-modal" role="dialog" aria-modal="true">
+    <div class="modal-dialog">
+      <div class="modal-head">
+        <h3 class="modal-heading">Morning Energy & Intention</h3>
+        <button class="btn-modal-close" onclick="closeCheckInModal()" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Mental Energy Level (1 = Low, 5 = Peak Alertness)</label>
+          <div class="scale-pills" id="rating-energy">
+            <button type="button" class="scale-pill" data-val="1" onclick="setRating('energy', 1)">1 Low</button>
+            <button type="button" class="scale-pill" data-val="2" onclick="setRating('energy', 2)">2</button>
+            <button type="button" class="scale-pill" data-val="3" onclick="setRating('energy', 3)">3 Steady</button>
+            <button type="button" class="scale-pill selected" data-val="4" onclick="setRating('energy', 4)">4 High</button>
+            <button type="button" class="scale-pill" data-val="5" onclick="setRating('energy', 5)">5 Peak</button>
+          </div>
+          <span class="form-caption">Intelligent adaptation: problem complexity matches your energy state.</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Sleep Quality (1 = Poor, 5 = Fully Rested)</label>
+          <div class="scale-pills" id="rating-sleep">
+            <button type="button" class="scale-pill" data-val="1" onclick="setRating('sleep', 1)">1 Poor</button>
+            <button type="button" class="scale-pill" data-val="2" onclick="setRating('sleep', 2)">2</button>
+            <button type="button" class="scale-pill" data-val="3" onclick="setRating('sleep', 3)">3 Fair</button>
+            <button type="button" class="scale-pill selected" data-val="4" onclick="setRating('sleep', 4)">4 Good</button>
+            <button type="button" class="scale-pill" data-val="5" onclick="setRating('sleep', 5)">5 Rested</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="checkin-goal">Today's Non-Negotiable Core Goal</label>
+          <input type="text" class="form-input" id="checkin-goal" placeholder="e.g. Master Percentage conversion & 40 Arithmetic PYQs">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="checkin-topic">Specific Chapter or Topic</label>
+          <input type="text" class="form-input" id="checkin-topic" placeholder="e.g. Ratio & Proportion or Syllogism Venn diagrams">
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn-modal-cancel" onclick="closeCheckInModal()">Cancel</button>
+        <button class="btn-modal-save" onclick="saveCheckIn()">Save Intention</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Evening Review Modal -->
+  <div class="modal-backdrop" id="review-modal" role="dialog" aria-modal="true">
+    <div class="modal-dialog">
+      <div class="modal-head">
+        <h3 class="modal-heading">Evening Wind-Down & Review</h3>
+        <button class="btn-modal-close" onclick="closeReviewModal()" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label" for="review-completed">What did you complete today?</label>
+          <input type="text" class="form-input" id="review-completed" placeholder="Summarize completed study...">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="review-missed">What was missed or deferred?</label>
+          <input type="text" class="form-input" id="review-missed" placeholder="e.g. Current affairs capsule postponed due to college lab">
+          <span class="form-caption">Zero guilt! Missed tasks are rolled forward into tomorrow's buffer.</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="review-distraction">Primary friction or fatigue point</label>
+          <select class="form-select" id="review-distraction">
+            <option value="Minimal Distraction">Minimal Distraction — High Flow Day</option>
+            <option value="College Travel Drain">College Exhaustion & Travel Drain</option>
+            <option value="Phone / Notifications">Phone / Social Media Notifications</option>
+            <option value="Heavy Cognitive Fatigue">Heavy Mental Fatigue on Tough Problems</option>
+            <option value="Unstructured Free Time">Unstructured College Interval</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="review-tomorrow-priority">Tomorrow's #1 Starting Priority</label>
+          <input type="text" class="form-input" id="review-tomorrow-priority" placeholder="e.g. Morning 5:15 AM: Finish Ratio & Proportion">
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn-modal-cancel" onclick="closeReviewModal()">Cancel</button>
+        <button class="btn-modal-save" onclick="saveDailyReview()">Complete Review</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Flashcards Modal -->
+  <div class="modal-backdrop" id="flashcard-modal" role="dialog" aria-modal="true">
+    <div class="modal-dialog modal-large">
+      <div class="modal-head">
+        <div>
+          <h3 class="modal-heading">Active Recall Deck</h3>
+          <span class="fc-modal-counter" id="fc-counter">1 / 7</span>
+        </div>
+        <button class="btn-modal-close" onclick="closeFlashcardModal()" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="fc-study-card" onclick="toggleFlashcardAnswer()">
+          <span class="fc-modal-tag" id="fc-tag">Maths - Shortcuts</span>
+          <div class="fc-modal-question" id="fc-question">What are the common Pythagorean Triplets?</div>
+          <div class="fc-modal-divider"></div>
+          <div class="fc-modal-answer" id="fc-answer" style="display: none;">
+            • (3, 4, 5)<br>• (5, 12, 13)<br>• (7, 24, 25)<br>• (8, 15, 17)
+          </div>
+          <div class="fc-modal-hint" id="fc-hint">Tap anywhere on this card to reveal answer</div>
+        </div>
+
+        <div class="fc-controls-row">
+          <button class="fc-answer-btn hard" onclick="nextFlashcard(false)">Review Again Soon</button>
+          <button class="fc-answer-btn easy" onclick="nextFlashcard(true)">Mastered (+15 XP)</button>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn-modal-cancel" onclick="closeFlashcardModal()">Done Studying</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. Add Task Modal (ONLY syllabus topics & study/revision activities) -->
+  <div class="modal-backdrop" id="add-task-modal" role="dialog" aria-modal="true">
+    <div class="modal-dialog">
+      <div class="modal-head">
+        <h3 class="modal-heading">Add Study Task</h3>
+        <button class="btn-modal-close" onclick="closeAddTaskModal()" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label" for="new-task-title">Syllabus Topic / Activity</label>
+          <input type="text" class="form-input" id="new-task-title" placeholder="e.g. Maths: 30 Ratio & Proportion PYQs">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label class="form-label" for="new-task-subject">Subject</label>
+            <select class="form-select" id="new-task-subject">
+              <option value="Maths">Quantitative Aptitude</option>
+              <option value="Reasoning">Reasoning</option>
+              <option value="English">English</option>
+              <option value="GK/History">GK / History</option>
+            </select>
+          </div>
+
+          <div class="form-group flex-1">
+            <label class="form-label" for="new-task-priority">Priority</label>
+            <select class="form-select" id="new-task-priority">
+              <option value="must">Must Do (Core)</option>
+              <option value="should">Should Do (Standard)</option>
+              <option value="bonus">Bonus (Speed/Extra)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="new-task-time">Planned Minutes</label>
+          <input type="number" class="form-input" id="new-task-time" value="30" min="5" max="180">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="new-task-notes">Resource Reference / Chapter</label>
+          <input type="text" class="form-input" id="new-task-notes" placeholder="e.g. Kiran PYQ 2023 or Lucent static notes">
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn-modal-cancel" onclick="closeAddTaskModal()">Cancel</button>
+        <button class="btn-modal-save" onclick="submitNewTask()">Add Task</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Feed -->
+  <div class="toast-stack" id="toast-container" aria-live="polite"></div>
+
+  <!-- Service Worker & App Engine -->
+  <script src="app.js"></script>
+</body>
+</html>
