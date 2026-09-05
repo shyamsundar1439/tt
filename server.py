@@ -6,7 +6,8 @@ import subprocess
 from datetime import datetime, date, timedelta
 from typing import Optional, List
 import asyncio
-from fastapi import FastAPI, HTTPException, Request, BackgroundTasks
+from zoneinfo import ZoneInfo
+from fastapi import FastAPI, HTTPException, Request, BackgroundTasks, Header, Query
 from fastapi.responses import JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -17,6 +18,7 @@ from database import (
 )
 
 app = FastAPI(title="SSC CGL Study Companion API")
+IST = ZoneInfo("Asia/Kolkata")
 
 @app.get("/health")
 def health():
@@ -691,56 +693,86 @@ def send_webpush_test_endpoint(payload: PushSendRequest):
 # Track reminders dispatched today to prevent repeated pushes in the same minute
 dispatched_reminders_today = set()
 
+def check_and_dispatch_reminders(tolerance_minutes: int = 0) -> dict:
+    """Evaluates scheduled reminder slots and dispatches Web Push for due reminders."""
+    now = datetime.now(IST)
+    today_str = now.strftime("%Y-%m-%d")
+    now_minutes = now.hour * 60 + now.minute
+
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT enabled, daily_task_reminder, reminder_time FROM notification_settings WHERE id = 1")
+    settings_row = cursor.fetchone()
+    conn.close()
+
+    if not settings_row or not settings_row["enabled"]:
+        return {"checked_at_ist": now.isoformat(), "dispatched": []}
+
+    reminder_time = settings_row["reminder_time"] or "07:00"
+    scheduled_times = {
+        reminder_time: ("Morning Study Call", "Daily study targets are active. Start your prime sprint!"),
+        "05:15": ("Morning Prime Sprint (05:15)", "Maths arithmetic & speed calculation block starting now."),
+        "18:30": ("Evening Focus Block (18:30)", "Time for Reasoning PYQs and speed drills!"),
+        "20:45": ("Evening Review & Wind-Down (20:45)", "Review your completed syllabus and log your error book notes.")
+    }
+
+    due_slots = []
+    for hhmm, payload in scheduled_times.items():
+        hh, mm = hhmm.split(":")
+        slot_minutes = int(hh) * 60 + int(mm)
+        if abs(now_minutes - slot_minutes) <= tolerance_minutes:
+            due_slots.append((hhmm, payload))
+
+    dispatched = []
+    if due_slots:
+        from push_service import send_web_push
+        subs = get_push_subscriptions()
+        for hhmm, (title, default_body) in due_slots:
+            dedup_key = f"{today_str}_{hhmm}"
+            if dedup_key in dispatched_reminders_today:
+                continue
+            dispatched_reminders_today.add(dedup_key)
+            sent = 0
+            failed = 0
+            for s in subs:
+                try:
+                    send_web_push(s, {
+                        "title": title,
+                        "body": default_body,
+                        "tag": f"scheduled-{hhmm}",
+                        "target_view": "today"
+                    })
+                    sent += 1
+                except Exception as e:
+                    status = getattr(getattr(e, "response", None), "status_code", None)
+                    if status in [404, 410]:
+                        delete_push_subscription(s["endpoint"])
+                    failed += 1
+            dispatched.append({"time": hhmm, "title": title, "sent": sent, "failed": failed})
+
+    return {"checked_at_ist": now.isoformat(), "dispatched": dispatched}
+
 async def push_scheduler_loop():
     """Background loop that evaluates scheduled study reminders and dispatches Web Push."""
     while True:
         try:
             await asyncio.sleep(45)
-            now = datetime.now()
-            today_str = now.strftime("%Y-%m-%d")
-            current_hhmm = now.strftime("%H:%M")
-
-            # Check notification settings
-            conn = get_db()
-            cursor = conn.cursor()
-            cursor.execute("SELECT enabled, daily_task_reminder, reminder_time FROM notification_settings WHERE id = 1")
-            settings_row = cursor.fetchone()
-            conn.close()
-
-            if not settings_row or not settings_row["enabled"]:
-                continue
-
-            reminder_time = settings_row["reminder_time"] or "07:00"
-            scheduled_times = {
-                reminder_time: ("Morning Study Call", "Daily study targets are active. Start your prime sprint!"),
-                "05:15": ("Morning Prime Sprint (05:15)", "Maths arithmetic & speed calculation block starting now."),
-                "18:30": ("Evening Focus Block (18:30)", "Time for Reasoning PYQs and speed drills!"),
-                "20:45": ("Evening Review & Wind-Down (20:45)", "Review your completed syllabus and log your error book notes.")
-            }
-
-            if current_hhmm in scheduled_times:
-                dedup_key = f"{today_str}_{current_hhmm}"
-                if dedup_key not in dispatched_reminders_today:
-                    dispatched_reminders_today.add(dedup_key)
-                    title, default_body = scheduled_times[current_hhmm]
-                    from push_service import send_web_push
-                    subs = get_push_subscriptions()
-                    for s in subs:
-                        try:
-                            send_web_push(s, {
-                                "title": title,
-                                "body": default_body,
-                                "tag": f"scheduled-{current_hhmm}",
-                                "target_view": "today"
-                            })
-                        except Exception as e:
-                            status = getattr(getattr(e, "response", None), "status_code", None)
-                            if status in [404, 410]:
-                                delete_push_subscription(s["endpoint"])
+            check_and_dispatch_reminders(tolerance_minutes=0)
         except asyncio.CancelledError:
             break
         except Exception:
             await asyncio.sleep(10)
+
+@app.post("/api/notifications/trigger-scheduled")
+def trigger_scheduled_notifications(
+    secret: Optional[str] = Query(default=None),
+    x_cron_secret: Optional[str] = Header(default=None, alias="X-Cron-Secret")
+):
+    expected_secret = os.getenv("CRON_SECRET")
+    if expected_secret and secret != expected_secret and x_cron_secret != expected_secret:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    result = check_and_dispatch_reminders(tolerance_minutes=3)
+    return {"success": True, **result}
 
 @app.on_event("startup")
 async def start_background_scheduler():
@@ -812,4 +844,3 @@ if __name__ == "__main__":
         uvicorn.run(app, host=args.host, port=args.port, ssl_certfile=cert_path, ssl_keyfile=key_path)
     else:
         uvicorn.run(app, host=args.host, port=args.port)
-
