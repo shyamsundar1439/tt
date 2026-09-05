@@ -103,10 +103,23 @@
 }
 
 html {
-  font-size: 15px;
+  font-size: 16px;
   scroll-behavior: smooth;
   overflow-x: hidden;
   width: 100%;
+  /* Prevent iOS/Android from auto-inflating or shrinking text size on
+     rotation or based on their own heuristics — we set sizes deliberately
+     with the media queries below, so let them stand as-is. */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* On small phones, nudge the base scale up a touch so body copy and pills
+   read comfortably instead of feeling like a shrunk-down desktop layout. */
+@media (max-width: 400px) {
+  html {
+    font-size: 16.5px;
+  }
 }
 
 body {
@@ -137,9 +150,19 @@ button {
 .app-layout {
   max-width: 900px;
   margin: 0 auto;
-  padding: 16px 16px 90px 16px;
+  padding: 16px 16px calc(90px + env(safe-area-inset-bottom, 0px)) 16px;
   width: 100%;
   overflow-x: hidden;
+}
+
+/* Give narrow phones a little more usable width instead of the same 16px
+   gutters a tablet gets — small edge padding was eating into content space
+   and making cards/text feel more cramped than necessary. */
+@media (max-width: 380px) {
+  .app-layout {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
 }
 
 @media (min-width: 768px) {
@@ -262,6 +285,15 @@ button {
   border: 1px solid var(--border-subtle);
   background: var(--bg-surface);
   transition: var(--transition-quick);
+}
+
+/* Slightly larger tap target on touch-primary screens — 34px is a bit
+   tight to hit reliably with a thumb. */
+@media (max-width: 767px) {
+  .icon-toggle-btn {
+    width: 40px;
+    height: 40px;
+  }
 }
 
 .icon-toggle-btn:hover {
@@ -1502,7 +1534,7 @@ button {
   right: 0;
   background: var(--bg-surface);
   border-top: 1px solid var(--border-subtle);
-  padding: 6px 12px;
+  padding: 6px 12px calc(6px + env(safe-area-inset-bottom, 0px)) 12px;
   z-index: 100;
   backdrop-filter: blur(12px);
 }
@@ -2100,4 +2132,3 @@ button {
 .btn-modal-danger:hover {
   background: rgba(239, 68, 68, 0.1);
 }
-
