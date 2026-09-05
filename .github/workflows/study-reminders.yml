@@ -8,6 +8,8 @@ on:
     - cron: "15 15 * * *" # 20:45 IST
   workflow_dispatch: {}
 
+permissions: {}
+
 jobs:
   trigger-reminders:
     runs-on: ubuntu-latest
