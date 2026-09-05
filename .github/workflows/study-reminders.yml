@@ -20,10 +20,29 @@ jobs:
             echo "Missing repository variable RENDER_BASE_URL"
             exit 1
           fi
+      - name: Resolve cron secret
+        id: resolve-cron-secret
+        env:
+          SECRET_CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          VAR_CRON_SECRET: ${{ vars.CRON_SECRET }}
+        run: |
+          CRON_SECRET="$SECRET_CRON_SECRET"
+          if [ -z "$CRON_SECRET" ]; then
+            CRON_SECRET="$VAR_CRON_SECRET"
+          fi
+
+          if [ -z "$CRON_SECRET" ]; then
+            echo "Missing CRON_SECRET (configure repository secret CRON_SECRET or variable CRON_SECRET)"
+            exit 1
+          fi
+
+          echo "::add-mask::$CRON_SECRET"
+          echo "cron_secret=$CRON_SECRET" >> "$GITHUB_OUTPUT"
       - name: Trigger scheduled reminder dispatch
         run: |
           curl --fail --show-error --silent \
             --retry 3 \
             --max-time 20 \
+            -H "X-Cron-Secret: ${{ steps.resolve-cron-secret.outputs.cron_secret }}" \
             -X POST \
-            "${{ vars.RENDER_BASE_URL }}/api/notifications/trigger-scheduled?secret=${{ secrets.CRON_SECRET }}"
+            "${{ vars.RENDER_BASE_URL }}/api/notifications/trigger-scheduled"
