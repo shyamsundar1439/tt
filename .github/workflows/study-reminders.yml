@@ -1,0 +1,29 @@
+name: Study Reminders Trigger
+
+on:
+  schedule:
+    - cron: "45 23 * * *" # 05:15 IST
+    - cron: "30 1 * * *"  # 07:00 IST
+    - cron: "0 13 * * *"  # 18:30 IST
+    - cron: "15 15 * * *" # 20:45 IST
+  workflow_dispatch: {}
+
+permissions: {}
+
+jobs:
+  trigger-reminders:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate configuration
+        run: |
+          if [ -z "${{ vars.RENDER_BASE_URL }}" ]; then
+            echo "Missing repository variable RENDER_BASE_URL"
+            exit 1
+          fi
+      - name: Trigger scheduled reminder dispatch
+        run: |
+          curl --fail --show-error --silent \
+            --retry 3 \
+            --max-time 20 \
+            -X POST \
+            "${{ vars.RENDER_BASE_URL }}/api/notifications/trigger-scheduled?secret=${{ secrets.CRON_SECRET }}"
