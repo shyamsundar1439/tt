@@ -18,6 +18,10 @@ from database import (
 
 app = FastAPI(title="SSC CGL Study Companion API")
 
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+    
 # Enable CORS for local testing
 app.add_middleware(
     CORSMiddleware,
